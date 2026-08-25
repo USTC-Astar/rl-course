@@ -1,0 +1,1 @@
+{"demo_episodes": 20, "expert_action_noise": 0.05, "bc_states_covered": 11, "total_non_terminal_states": 36, "covered_starts": 11, "uncovered_starts": 16, "expert_success_covered": 1.0, "bc_success_covered": 1.0, "expert_success_uncovered": 1.0, "bc_success_uncovered": 0.4515, "episodes": 800}

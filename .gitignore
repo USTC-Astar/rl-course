@@ -1,0 +1,29 @@
+# Python
+.venv/
+.python/
+.tools/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
+
+# 训练产物（体积大；课程数据 JSON 已入库，模型可本地重新训练）
+artifacts/*.pt
+
+# Node / VitePress
+web/node_modules/
+web/dist/
+web/docs/.vitepress/cache/
+web/docs/.vitepress/dist/
+web/docs/public/data/
+
+# 编辑器与系统
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# 日志与临时文件
+*.log
+*.tmp

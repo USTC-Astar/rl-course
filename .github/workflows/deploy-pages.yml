@@ -1,0 +1,56 @@
+# 将课程站部署到 GitHub Pages。
+# 首次使用：仓库 Settings → Pages → Build and deployment → Source 选择 GitHub Actions。
+# 若仓库是 <user>.github.io 根站点（而非项目页），请删除下方 BASE_PATH 一行。
+name: Deploy course site to Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: 安装依赖
+        run: npm ci
+
+      - name: 构建（项目页子路径 + 关闭 cleanUrls）
+        env:
+          BASE_PATH: /${{ github.event.repository.name }}
+          CLEAN_URLS: '0'
+        run: npm run build
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="强化学习课程标志">
+  <defs>
+    <linearGradient id="g" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2563eb"/>
+      <stop offset="0.55" stop-color="#7c3aed"/>
+      <stop offset="1" stop-color="#0891b2"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="url(#g)"/>
+  <path d="M15 43V21l17-9 17 9v22L32 52 15 43Z" fill="none" stroke="white" stroke-width="4" stroke-linejoin="round"/>
+  <circle cx="24" cy="29" r="3" fill="white"/>
+  <circle cx="40" cy="29" r="3" fill="white"/>
+  <path d="M23 39c5 4 13 4 18 0" fill="none" stroke="white" stroke-width="4" stroke-linecap="round"/>
+</svg>

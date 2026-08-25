@@ -1,0 +1,1748 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="通过六个本地可训练项目，从网格世界一路学习到 MuJoCo 连续动作控制"
+    />
+    <title>强化学习项目式学习实验室</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <aside class="sidebar">
+      <a class="brand" href="#top">
+        <span class="brand-mark">RL</span>
+        <span>强化学习实验室</span>
+      </a>
+      <nav aria-label="课程目录">
+        <a href="#start">开始之前</a>
+        <a href="#project-one">项目一：网格寻宝</a>
+        <a href="#q-learning">Q 学习原理</a>
+        <a href="#grid-lab">网格实验台</a>
+        <a href="#project-two">项目二：小车平衡</a>
+        <a href="#dqn">深度 Q 网络</a>
+        <a href="#cartpole-lab">小车实验台</a>
+        <a href="#policy-gradient">项目三：策略梯度</a>
+        <a href="#policy-lab">策略概率实验台</a>
+        <a href="#actor-critic">项目四：行动者-评论家</a>
+        <a href="#actor-critic-lab">双角色实验台</a>
+        <a href="#ppo">项目五：PPO</a>
+        <a href="#ppo-lab">策略限速实验台</a>
+        <a href="#continuous-control">项目六：连续控制</a>
+        <a href="#continuous-lab">MuJoCo 实验台</a>
+        <a href="#sac">项目七：SAC</a>
+        <a href="#sac-lab">经验回放实验台</a>
+        <a href="#experiments">动手实验</a>
+        <a href="#next">下一步</a>
+      </nav>
+      <div class="sidebar-tip">
+        <strong>学习原则</strong>
+        <span>先看机器人犯错，再理解公式为什么需要存在。</span>
+      </div>
+    </aside>
+
+    <main id="top">
+      <header class="hero">
+        <div class="eyebrow">PROJECT-BASED REINFORCEMENT LEARNING</div>
+        <h1>不要先背公式，<br /><span>先训练一个会犯错的机器人。</span></h1>
+        <p>
+          这套课程让 Python 在本地真实训练智能体，再由网页读取训练结果。你看到的路线、
+          Q 值和小车动画都来自实际运行，而不是预先写好的演示。
+        </p>
+        <div class="hero-actions">
+          <a class="button primary" href="#project-one">从第一个项目开始</a>
+          <a class="button secondary" href="#run">查看运行命令</a>
+        </div>
+        <div class="hero-stats">
+          <div><strong>7</strong><span>完整项目</span></div>
+          <div><strong>CPU</strong><span>无需独立显卡</span></div>
+          <div><strong>-3.0 ～ +3.0</strong><span>连续推力控制</span></div>
+        </div>
+      </header>
+
+      <section id="start" class="section">
+        <div class="section-heading">
+          <span>00</span>
+          <div>
+            <p>BEFORE STARTING</p>
+            <h2>开始之前：你到底要让机器学什么？</h2>
+          </div>
+        </div>
+
+        <div class="analogy-card">
+          <div class="analogy-icon">🐶</div>
+          <div>
+            <h3>把强化学习想成训练一只小狗</h3>
+            <p>
+              你不会把“坐下”动作的每一块肌肉如何运动写成程序，而是在它做对时给零食，
+              做错时不给。经过很多次尝试，它逐渐发现什么行为更容易获得奖励。
+            </p>
+          </div>
+        </div>
+
+        <div class="concept-grid four">
+          <article>
+            <span class="concept-number">1</span>
+            <h3>智能体（Agent）</h3>
+            <p>负责做决定的学习者。本项目中分别是网格机器人和控制小车的程序。</p>
+          </article>
+          <article>
+            <span class="concept-number">2</span>
+            <h3>环境（Environment）</h3>
+            <p>智能体所处的世界。环境接收动作，然后返回新的情况和奖励。</p>
+          </article>
+          <article>
+            <span class="concept-number">3</span>
+            <h3>动作（Action）</h3>
+            <p>智能体能做的选择，例如上下左右，或者向左、向右推动小车。</p>
+          </article>
+          <article>
+            <span class="concept-number">4</span>
+            <h3>奖励（Reward）</h3>
+            <p>环境给出的即时评分。它不告诉答案，只告诉刚才的结果有多好。</p>
+          </article>
+        </div>
+
+        <div class="callout info">
+          <strong>你的硬件够不够？</strong>
+          <p>
+            够。本课程默认使用中央处理器（Central Processing Unit, CPU）训练。网格世界几秒内完成，
+            CartPole 通常几分钟内完成。显卡只会在以后处理大型视觉任务时变得重要。
+          </p>
+        </div>
+
+        <div id="run" class="terminal-card">
+          <div class="terminal-bar"><span></span><span></span><span></span></div>
+          <pre><code><span class="comment"># 在项目根目录依次执行</span>
+cd /home/zzs/rl-learning-lab
+./scripts/bootstrap.sh
+./scripts/train_all.sh
+./scripts/serve.sh
+
+<span class="comment"># 浏览器打开</span>
+http://127.0.0.1:8000</code></pre>
+        </div>
+      </section>
+
+      <section id="project-one" class="section tinted">
+        <div class="section-heading">
+          <span>01</span>
+          <div>
+            <p>PROJECT ONE</p>
+            <h2>网格世界寻宝：机器人怎样从乱走变成会规划？</h2>
+          </div>
+        </div>
+
+        <p class="lead">
+          机器人从左下角出发，要到达右上角。它一开始没有地图攻略，只知道每次行动后得到多少分。
+          我们要观察奖励如何一步步变成“经验”。
+        </p>
+
+        <div class="reward-story">
+          <div class="reward-item positive"><span>+10</span><p>到达终点</p></div>
+          <div class="reward-item neutral"><span>-0.1</span><p>普通移动</p></div>
+          <div class="reward-item warning"><span>-1</span><p>撞墙</p></div>
+          <div class="reward-item danger"><span>-10</span><p>掉进陷阱</p></div>
+        </div>
+
+        <div class="explain-split">
+          <div>
+            <h3>为什么走一步也要扣一点分？</h3>
+            <p>
+              如果普通移动奖励是零，那么走 10 步和绕路走 80 步，只要最后到达终点，结果看起来都一样。
+              每步扣 `0.1` 分，相当于告诉机器人：“可以探索，但不要无限绕路。”
+            </p>
+          </div>
+          <div class="mini-visual path-compare">
+            <div><span>短路线</span><strong>10 - 0.8 = 9.2</strong></div>
+            <div><span>长路线</span><strong>10 - 4.0 = 6.0</strong></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="q-learning" class="section">
+        <div class="section-heading">
+          <span>02</span>
+          <div>
+            <p>Q-LEARNING</p>
+            <h2>Q 学习：给每个“处境 + 动作”建立经验分数</h2>
+          </div>
+        </div>
+
+        <div class="analogy-card compact">
+          <div class="analogy-icon">🍜</div>
+          <div>
+            <h3>Q 值就像你的餐馆经验表</h3>
+            <p>
+              “周一中午去 A 店”可能评分 8，“下雨天去 B 店”可能评分 3。Q 值不是餐馆永远的绝对分数，
+              而是描述<strong>在某种情况下做某个选择，长期来看有多划算</strong>。
+            </p>
+          </div>
+        </div>
+
+        <div class="formula-card">
+          <div class="formula">Q(s,a) ← Q(s,a) + α [r + γ max Q(s′,a′) − Q(s,a)]</div>
+          <p>不要背。把它拆成一句话：</p>
+          <div class="formula-words">
+            <span>新评价</span><b>=</b><span>旧评价</span><b>+</b><span>学习速度</span><b>×</b><span>这次发现的误差</span>
+          </div>
+        </div>
+
+        <div class="concept-grid three">
+          <article>
+            <h3>学习率（Learning Rate, α）</h3>
+            <p>一次新经历能改变旧看法多少。太大容易反复横跳，太小学得很慢。</p>
+          </article>
+          <article>
+            <h3>折扣因子（Discount Factor, γ）</h3>
+            <p>未来奖励的重要程度。接近 1 表示愿意为了将来的终点暂时承受小损失。</p>
+          </article>
+          <article>
+            <h3>探索率（Exploration Rate, ε）</h3>
+            <p>随机尝试陌生动作的概率。开始时高，经验变多后逐渐降低。</p>
+          </article>
+        </div>
+
+        <div class="timeline">
+          <div><span>训练初期</span><strong>像第一次进商场：到处看看</strong><small>ε 接近 1</small></div>
+          <div><span>训练中期</span><strong>知道几家好店，但偶尔尝新</strong><small>ε 逐渐下降</small></div>
+          <div><span>训练后期</span><strong>大多数时候选择经验最好的路线</strong><small>ε 接近 0.05</small></div>
+        </div>
+
+        <details class="code-explanation" open>
+          <summary>查看核心 Q 学习代码</summary>
+          <pre><code><span class="comment"># 1. 用 ε-贪心策略决定：探索新动作，还是使用当前经验</span>
+action = choose_action(q_table, state, epsilon, rng)
+
+<span class="comment"># 2. 真正在环境里走一步，获得结果</span>
+next_state, reward, done = env.step(action)
+
+<span class="comment"># 3. 终局之后没有未来，因此未来价值记为 0</span>
+best_next_value = 0.0 if done else np.max(q_table[next_state])
+
+<span class="comment"># 4. “眼前奖励 + 未来最好前景”组成新的学习目标</span>
+target = reward + discount_factor * best_next_value
+
+<span class="comment"># 5. 不一次性推翻旧经验，只向新目标靠近一点</span>
+error = target - q_table[state, action]
+q_table[state, action] += learning_rate * error</code></pre>
+        </details>
+      </section>
+
+      <section id="grid-lab" class="section lab-section">
+        <div class="section-heading">
+          <span>03</span>
+          <div>
+            <p>INTERACTIVE LAB</p>
+            <h2>网格实验台：点击格子查看机器人学到的 Q 值</h2>
+          </div>
+        </div>
+
+        <div id="grid-status" class="data-status loading">正在读取网格世界训练数据……</div>
+
+        <div class="lab-layout">
+          <div class="lab-panel">
+            <div class="panel-toolbar">
+              <button id="grid-reset" type="button">回到起点</button>
+              <button id="grid-step" type="button">走一步</button>
+              <button id="grid-play" class="accent" type="button">自动播放</button>
+            </div>
+            <div id="grid-world" class="grid-world" aria-label="网格世界"></div>
+            <div class="legend">
+              <span><i class="legend-start"></i>起点</span>
+              <span><i class="legend-goal"></i>终点</span>
+              <span><i class="legend-wall"></i>墙</span>
+              <span><i class="legend-trap"></i>陷阱</span>
+            </div>
+          </div>
+
+          <div class="lab-panel q-panel">
+            <h3>选中格子的动作价值</h3>
+            <p id="selected-cell">点击左侧一个可行走格子。</p>
+            <div id="q-bars" class="q-bars">
+              <div data-action="up"><span>向上 ↑</span><i></i><b>0</b></div>
+              <div data-action="right"><span>向右 →</span><i></i><b>0</b></div>
+              <div data-action="down"><span>向下 ↓</span><i></i><b>0</b></div>
+              <div data-action="left"><span>向左 ←</span><i></i><b>0</b></div>
+            </div>
+            <div class="interpretation">
+              <strong>怎样读这些数字？</strong>
+              <p>最长的条代表机器人认为长期最划算的动作。负数不是“程序坏了”，而是机器人预测这条路可能带来损失。</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="snapshot-card">
+          <div>
+            <h3>观察策略怎样形成</h3>
+            <p>拖动滑块，查看训练不同阶段每个格子中“当前最喜欢的方向”。</p>
+          </div>
+          <input id="snapshot-slider" type="range" min="0" max="0" value="0" />
+          <strong id="snapshot-label">等待数据</strong>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-heading">
+            <div><h3>每回合奖励</h3><p>浅线是原始结果，亮线是最近 50 回合平均值。</p></div>
+            <div id="grid-metrics" class="metrics"></div>
+          </div>
+          <canvas id="grid-reward-chart" height="300"></canvas>
+        </div>
+      </section>
+
+      <section id="project-two" class="section tinted">
+        <div class="section-heading">
+          <span>04</span>
+          <div>
+            <p>PROJECT TWO</p>
+            <h2>CartPole 小车平衡：Q 值表为什么突然不够用了？</h2>
+          </div>
+        </div>
+
+        <p class="lead">
+          现在小车可以向左或向右推，目标是让杆尽量不倒。看起来只有两个动作，为什么不能继续使用 Q 值表？
+          因为状态已经变成连续数字，几乎不可能全部列举。
+        </p>
+
+        <div class="state-strip">
+          <div><span>x</span><strong>小车位置</strong><small>车在哪里</small></div>
+          <div><span>ẋ</span><strong>小车速度</strong><small>车移动多快</small></div>
+          <div><span>θ</span><strong>杆的角度</strong><small>杆倾斜多少</small></div>
+          <div><span>θ̇</span><strong>杆的角速度</strong><small>杆倒下多快</small></div>
+        </div>
+
+        <div class="explain-split">
+          <div>
+            <h3>表格方法遇到了什么问题？</h3>
+            <p>
+              小车位置可能是 `0.1234`，下一次又是 `0.1235`。如果每个细微数值都占一行，Q 值表会大到无法使用，
+              而且没见过的新数值永远没有经验。
+            </p>
+          </div>
+          <div class="mini-visual table-explosion">
+            <span>状态组合数量</span>
+            <strong>近乎无限</strong>
+            <div></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="dqn" class="section">
+        <div class="section-heading">
+          <span>05</span>
+          <div>
+            <p>DEEP Q-NETWORK</p>
+            <h2>深度 Q 网络：不再查表，改为让神经网络估算</h2>
+          </div>
+        </div>
+
+        <div class="network-diagram">
+          <div class="network-block input"><span>输入状态</span><b>x, ẋ, θ, θ̇</b></div>
+          <div class="network-arrow">→</div>
+          <div class="network-block hidden"><span>神经网络</span><b>128 → 128</b></div>
+          <div class="network-arrow">→</div>
+          <div class="network-block output"><span>输出 Q 值</span><b>向左 / 向右</b></div>
+        </div>
+
+        <div class="analogy-card compact">
+          <div class="analogy-icon">📐</div>
+          <div>
+            <h3>从“背答案”变成“学规律”</h3>
+            <p>
+              Q 值表像背下每一道题的答案；神经网络像学会解题方法。即使遇到没见过的角度，
+              只要与过去情况相似，也能估算应该向哪边推。
+            </p>
+          </div>
+        </div>
+
+        <div class="concept-grid two">
+          <article>
+            <h3>经验回放（Experience Replay）</h3>
+            <p>
+              把经历存进“错题本”，训练时随机抽取。这样不会只盯着刚刚发生的几步，也能让同一条经验被重复利用。
+            </p>
+            <div class="memory-chips"><span>A</span><span>F</span><span>C</span><span>H</span><span>B</span></div>
+          </article>
+          <article>
+            <h3>目标网络（Target Network）</h3>
+            <p>
+              在线网络不断学习，目标网络暂时固定参考答案。如果出题人和答案同时快速变化，学生很难稳定学习。
+            </p>
+            <div class="target-visual"><span>在线网络</span><i>定期复制</i><span>目标网络</span></div>
+          </article>
+        </div>
+
+        <details class="code-explanation" open>
+          <summary>查看深度 Q 网络的核心更新</summary>
+          <pre><code><span class="comment"># 在线网络给出当前执行动作的 Q 值</span>
+current_values = online_network(states).gather(1, actions)
+
+<span class="comment"># 目标网络提供相对稳定的未来价值</span>
+with torch.no_grad():
+    next_actions = online_network(next_states).argmax(dim=1, keepdim=True)
+    next_values = target_network(next_states).gather(1, next_actions)
+    targets = rewards + gamma * (1 - dones) * next_values
+
+<span class="comment"># 让当前预测逐渐接近目标，而不是手工填写 Q 值</span>
+loss = smooth_l1_loss(current_values, targets)
+loss.backward()
+optimizer.step()</code></pre>
+        </details>
+      </section>
+
+      <section id="cartpole-lab" class="section lab-section">
+        <div class="section-heading">
+          <span>06</span>
+          <div>
+            <p>INTERACTIVE LAB</p>
+            <h2>小车实验台：播放训练后真实记录的状态轨迹</h2>
+          </div>
+        </div>
+
+        <div id="cartpole-status" class="data-status loading">正在读取 CartPole 训练数据……</div>
+
+        <div class="cartpole-layout">
+          <div class="lab-panel cartpole-panel">
+            <canvas id="cartpole-canvas" width="900" height="380"></canvas>
+            <div class="panel-toolbar centered">
+              <button id="cartpole-reset" type="button">重新播放</button>
+              <button id="cartpole-play" class="accent" type="button">暂停</button>
+            </div>
+          </div>
+          <div class="lab-panel live-state">
+            <h3>当前状态</h3>
+            <div><span>小车位置 x</span><b id="state-x">0.000</b></div>
+            <div><span>小车速度 ẋ</span><b id="state-x-dot">0.000</b></div>
+            <div><span>杆角度 θ</span><b id="state-theta">0.000</b></div>
+            <div><span>杆角速度 θ̇</span><b id="state-theta-dot">0.000</b></div>
+            <div class="frame-progress"><i id="cartpole-progress"></i></div>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-heading">
+            <div><h3>训练回合回报</h3><p>CartPole 每坚持一步得到 1 分，最高通常为 500。</p></div>
+            <div id="cartpole-metrics" class="metrics"></div>
+          </div>
+          <canvas id="cartpole-reward-chart" height="300"></canvas>
+        </div>
+      </section>
+
+      <section id="policy-gradient" class="section tinted">
+        <div class="section-heading">
+          <span>07</span>
+          <div>
+            <p>PROJECT THREE</p>
+            <h2>同一个小车，换个大脑：直接学习动作概率</h2>
+          </div>
+        </div>
+
+        <p class="lead">
+          深度 Q 网络先问“向左和向右分别值多少分”，再选择分数高的动作。
+          策略梯度（Policy Gradient）不再绕这一步，而是直接回答：“现在向左和向右各有多大概率？”
+        </p>
+
+        <div class="method-comparison">
+          <article>
+            <span>VALUE-BASED</span>
+            <h3>深度 Q 网络的思路</h3>
+            <div class="method-flow"><b>状态</b><i>→</i><b>两个 Q 值</b><i>→</i><b>选择最大值</b></div>
+            <p>像先给每道菜打分，再点分数最高的菜。</p>
+          </article>
+          <article class="highlight">
+            <span>POLICY-BASED</span>
+            <h3>策略梯度的思路</h3>
+            <div class="method-flow"><b>状态</b><i>→</i><b>动作概率</b><i>→</i><b>按概率行动</b></div>
+            <p>像直接形成点菜习惯：面食 70%，米饭 30%。</p>
+          </article>
+        </div>
+
+        <div class="analogy-card compact">
+          <div class="analogy-icon">🏀</div>
+          <div>
+            <h3>教练没有逐帧标准答案</h3>
+            <p>
+              球员完成一套动作后得分，教练会提高这套成功动作再次出现的倾向；如果最终失败，就降低相关动作的倾向。
+              策略梯度也是根据整段经历的回报，调整每一步动作的概率。
+            </p>
+          </div>
+        </div>
+
+        <div class="formula-card">
+          <div class="formula">∇J(θ) ≈ Σ Gₜ ∇ log π<sub>θ</sub>(aₜ | sₜ)</div>
+          <p>先不背符号，把它翻译成三步：</p>
+          <div class="formula-words">
+            <span>看看这一段最终回报</span><b>→</b>
+            <span>找到当时选择动作的概率</span><b>→</b>
+            <span>好结果就提高概率，差结果就降低概率</span>
+          </div>
+        </div>
+
+        <div class="concept-grid three">
+          <article>
+            <h3>策略（Policy, π）</h3>
+            <p>从当前状态得到动作概率分布。本项目输出向左和向右两个概率，两者相加等于 100%。</p>
+          </article>
+          <article>
+            <h3>折扣回报（Discounted Return, Gₜ）</h3>
+            <p>从当前动作开始，未来奖励的折扣总和。越早帮助小车长期站稳的动作，通常获得越高评价。</p>
+          </article>
+          <article>
+            <h3>熵（Entropy）</h3>
+            <p>衡量策略有多随机。少量熵奖励能防止网络太早变成“无论什么情况都只向同一边推”。</p>
+          </article>
+        </div>
+
+        <div class="credit-story">
+          <div><span>第 1 步</span><b>未来还能坚持 200 步</b><small>这一步可能很重要</small></div>
+          <div><span>第 150 步</span><b>未来还能坚持 50 步</b><small>仍有贡献，但可见未来更短</small></div>
+          <div><span>最后一步</span><b>下一刻杆就倒了</b><small>这一步得到的长期回报较少</small></div>
+        </div>
+
+        <details class="code-explanation" open>
+          <summary>查看 REINFORCE 策略梯度核心代码</summary>
+          <pre><code><span class="comment"># 1. 神经网络直接给出动作分布，并按照概率采样</span>
+distribution = Categorical(logits=policy_network(observation))
+action = distribution.sample()
+
+<span class="comment"># 2. 回合结束后，从后向前计算每一步的折扣回报</span>
+returns = discounted_returns(rewards, discount_factor)
+
+<span class="comment"># 3. 高回报动作提高概率，低回报动作降低概率</span>
+log_probabilities = distribution.log_prob(actions)
+policy_loss = -(log_probabilities * returns).mean()
+
+<span class="comment"># 4. 加少量熵奖励，避免策略过早失去探索能力</span>
+loss = policy_loss - entropy_coefficient * distribution.entropy().mean()</code></pre>
+        </details>
+
+        <div class="callout info">
+          <strong>为什么代码同时训练 16 辆小车？</strong>
+          <p>
+            这叫向量环境（Vectorized Environment）。算法没有改变，只是让 16 辆小车同时收集完整回合，
+            再合并更新一次策略。像让全班同时做题，比一个学生连续做 16 份试卷更快，也能降低单次运气的影响。
+          </p>
+        </div>
+      </section>
+
+      <section id="policy-lab" class="section lab-section">
+        <div class="section-heading">
+          <span>08</span>
+          <div>
+            <p>POLICY LAB</p>
+            <h2>策略概率实验台：它为什么在这一刻选择向左？</h2>
+          </div>
+        </div>
+
+        <div id="policy-status" class="data-status loading">正在读取策略梯度训练数据……</div>
+
+        <div class="cartpole-layout">
+          <div class="lab-panel cartpole-panel">
+            <canvas id="policy-canvas" width="900" height="380"></canvas>
+            <div class="panel-toolbar centered">
+              <button id="policy-reset" type="button">重新播放</button>
+              <button id="policy-play" class="accent" type="button">暂停</button>
+            </div>
+          </div>
+          <div class="lab-panel policy-panel">
+            <h3>当前动作概率</h3>
+            <p>网络不是先计算 Q 值，而是直接输出下面的选择倾向。</p>
+            <div class="probability-row left">
+              <div><span>向左</span><b id="policy-left-value">50.0%</b></div>
+              <i><em id="policy-left-bar"></em></i>
+            </div>
+            <div class="probability-row right">
+              <div><span>向右</span><b id="policy-right-value">50.0%</b></div>
+              <i><em id="policy-right-bar"></em></i>
+            </div>
+            <div class="policy-choice">
+              <span>这一帧实际选择</span>
+              <strong id="policy-action">等待数据</strong>
+            </div>
+            <div class="frame-progress"><i id="policy-progress"></i></div>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-heading">
+            <div><h3>策略梯度训练回报</h3><p>曲线波动通常比 DQN 更明显，因为完整回合结果会共同影响更新。</p></div>
+            <div id="policy-metrics" class="metrics"></div>
+          </div>
+          <canvas id="policy-reward-chart" height="300"></canvas>
+        </div>
+
+        <div class="comparison-table">
+          <div class="comparison-head"><span>比较问题</span><b>深度 Q 网络</b><b>策略梯度</b></div>
+          <div><span>网络输出</span><b>每个动作的 Q 值</b><b>每个动作的概率</b></div>
+          <div><span>怎样探索</span><b>额外使用 ε 随机动作</b><b>策略概率天然可以随机</b></div>
+          <div><span>何时更新</span><b>从经验回放随机抽样</b><b>收集完整回合后更新</b></div>
+          <div><span>训练特点</span><b>样本可重复使用</b><b>直观但波动通常更大</b></div>
+        </div>
+      </section>
+
+      <section id="actor-critic" class="section tinted">
+        <div class="section-heading">
+          <span>09</span>
+          <div>
+            <p>PROJECT FOUR</p>
+            <h2>行动者-评论家：一个负责行动，一个负责评价</h2>
+          </div>
+        </div>
+
+        <p class="lead">
+          REINFORCE 要等完整回合结束，才知道这一整段动作表现如何。行动者-评论家（Actor-Critic）增加一个评论家，
+          在训练过程中持续估计当前局面的前景，让行动者获得更及时的反馈。
+        </p>
+
+        <div class="actor-critic-stage">
+          <article class="actor-card">
+            <span>ACTOR</span>
+            <div class="role-icon">🏃</div>
+            <h3>行动者（Actor）</h3>
+            <p>看到当前状态，输出向左和向右的动作概率，然后真正控制小车。</p>
+          </article>
+          <div class="feedback-loop">
+            <b>选择动作 →</b>
+            <span>环境产生新结果</span>
+            <b>← 优势值反馈</b>
+          </div>
+          <article class="critic-card">
+            <span>CRITIC</span>
+            <div class="role-icon">🧑‍🏫</div>
+            <h3>评论家（Critic）</h3>
+            <p>看到当前状态，估计从这里开始未来大概还能获得多少回报。</p>
+          </article>
+        </div>
+
+        <div class="analogy-card compact">
+          <div class="analogy-icon">⛹️</div>
+          <div>
+            <h3>运动员不必等整场比赛结束才听教练说话</h3>
+            <p>
+              纯策略梯度像比赛结束后只得到一句“赢了”或“输了”；行动者-评论家则像教练在每个回合间告诉运动员：
+              “刚才这次选择比我预期好 20 分”，反馈更及时，也更容易判断具体动作的贡献。
+            </p>
+          </div>
+        </div>
+
+        <div class="formula-card advantage-formula">
+          <div class="formula">A(s,a) = Gₜ − V(s)</div>
+          <p>优势值（Advantage）不是问动作绝对有多好，而是问它比评论家的预期好多少。</p>
+          <div class="advantage-examples">
+            <div><span>评论家预计</span><b>100</b></div>
+            <i>→</i>
+            <div><span>实际回报</span><b>140</b></div>
+            <i>=</i>
+            <div class="positive"><span>优势值</span><b>+40</b><small>提高动作概率</small></div>
+          </div>
+          <div class="advantage-examples">
+            <div><span>评论家预计</span><b>100</b></div>
+            <i>→</i>
+            <div><span>实际回报</span><b>60</b></div>
+            <i>=</i>
+            <div class="negative"><span>优势值</span><b>-40</b><small>降低动作概率</small></div>
+          </div>
+        </div>
+
+        <div class="concept-grid three">
+          <article>
+            <h3>状态价值（State Value, V）</h3>
+            <p>评论家对当前局面前景的估计。杆接近竖直且运动稳定时，通常应该给出更高价值。</p>
+          </article>
+          <article>
+            <h3>时序差分误差（Temporal-Difference Error）</h3>
+            <p>比较“奖励加下一状态价值”和当前预测的差距，帮助评论家逐步纠正自己的判断。</p>
+          </article>
+          <article>
+            <h3>广义优势估计（Generalized Advantage Estimation, GAE）</h3>
+            <p>综合几种不同长度的未来信息，在反应速度和估计稳定性之间取得折中。</p>
+          </article>
+        </div>
+
+        <div class="explain-split">
+          <div>
+            <h3>为什么只向前看 5 步？</h3>
+            <p>
+              每走一步就更新，反馈及时但容易被偶然噪声影响；等完整回合再更新，比较稳定但反馈太慢。
+              本项目每 5 步汇总一次，再由评论家估计更远的未来，相当于“看清眼前几步，同时参考长期判断”。
+            </p>
+          </div>
+          <div class="mini-visual rollout-visual">
+            <span>真实观察 5 步</span>
+            <div><b>1</b><b>2</b><b>3</b><b>4</b><b>5</b><i>＋ 评论家预测未来</i></div>
+          </div>
+        </div>
+
+        <details class="code-explanation" open>
+          <summary>查看行动者-评论家核心更新</summary>
+          <pre><code><span class="comment"># 同一批状态分别送给行动者和评论家</span>
+action_logits, state_values = network(observations)
+distribution = Categorical(logits=action_logits)
+
+<span class="comment"># 用真实奖励和评论家预测计算广义优势估计</span>
+advantages, return_targets = calculate_gae(
+    rewards, dones, state_values, bootstrap_values
+)
+
+<span class="comment"># 行动者：优势为正就提高该动作概率，优势为负就降低</span>
+actor_loss = -(log_probabilities * advantages.detach()).mean()
+
+<span class="comment"># 评论家：让自己的价值预测接近实际回报目标</span>
+critic_loss = mse_loss(state_values, return_targets)
+
+<span class="comment"># 两个目标一起优化，同时保留少量策略随机性</span>
+loss = actor_loss + 0.5 * critic_loss - 0.001 * entropy</code></pre>
+        </details>
+
+        <div class="callout warning">
+          <strong>训练分数高，不代表当前模型一定好</strong>
+          <p>
+            训练过程中策略不断变化，一个长回合可能跨越多次更新。因此项目会定期暂停训练进行独立考试，并保留考试成绩最好的模型，
+            而不是简单保存最后一次更新。这是本节从实际调试中得到的重要经验。
+          </p>
+        </div>
+      </section>
+
+      <section id="actor-critic-lab" class="section lab-section">
+        <div class="section-heading">
+          <span>10</span>
+          <div>
+            <p>ACTOR-CRITIC LAB</p>
+            <h2>双角色实验台：行动者怎么做，评论家怎么看？</h2>
+          </div>
+        </div>
+
+        <div id="actor-critic-status" class="data-status loading">正在读取行动者-评论家训练数据……</div>
+
+        <div class="cartpole-layout">
+          <div class="lab-panel cartpole-panel">
+            <canvas id="actor-critic-canvas" width="900" height="380"></canvas>
+            <div class="panel-toolbar centered">
+              <button id="actor-critic-reset" type="button">重新播放</button>
+              <button id="actor-critic-play" class="accent" type="button">暂停</button>
+            </div>
+          </div>
+          <div class="lab-panel policy-panel critic-live-panel">
+            <h3>行动者的动作概率</h3>
+            <div class="probability-row left">
+              <div><span>向左</span><b id="ac-left-value">50.0%</b></div>
+              <i><em id="ac-left-bar"></em></i>
+            </div>
+            <div class="probability-row right">
+              <div><span>向右</span><b id="ac-right-value">50.0%</b></div>
+              <i><em id="ac-right-bar"></em></i>
+            </div>
+            <div class="critic-numbers">
+              <div><span>评论家预测 V(s)</span><b id="ac-value">0.00</b></div>
+              <div><span>事后实际回报 Gₜ</span><b id="ac-return">0.00</b></div>
+              <div class="advantage"><span>优势值 A</span><b id="ac-advantage">0.00</b></div>
+            </div>
+            <div class="policy-choice">
+              <span>行动者实际选择</span>
+              <strong id="ac-action">等待数据</strong>
+            </div>
+            <div class="frame-progress"><i id="ac-progress"></i></div>
+          </div>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-heading">
+            <div><h3>训练回合回报</h3><p>行动者负责提高回报，评论家负责降低判断误差。</p></div>
+            <div id="actor-critic-metrics" class="metrics"></div>
+          </div>
+          <canvas id="actor-critic-reward-chart" height="300"></canvas>
+        </div>
+
+        <div class="comparison-table">
+          <div class="comparison-head"><span>比较问题</span><b>REINFORCE</b><b>行动者-评论家</b></div>
+          <div><span>反馈来源</span><b>完整回合折扣回报</b><b>回报与价值预测的差距</b></div>
+          <div><span>网络组成</span><b>只有策略网络</b><b>行动者网络 + 评论家网络</b></div>
+          <div><span>更新频率</span><b>通常等回合结束</b><b>可以每几步更新</b></div>
+          <div><span>新增代价</span><b>结构简单但波动大</b><b>评论家也可能判断错误</b></div>
+        </div>
+      </section>
+
+      <section id="ppo" class="section tinted">
+        <div class="section-heading">
+          <span>11</span>
+          <div>
+            <p>PROJECT FIVE</p>
+            <h2>PPO：给策略更新装上限速器</h2>
+          </div>
+        </div>
+
+        <p class="lead">
+          上一课已经看到：行动者-评论家可能一次更新就把不错的策略推坏。
+          近端策略优化（Proximal Policy Optimization, PPO）的核心不是更复杂地预测未来，
+          而是限制新策略不要一次离旧策略太远。
+        </p>
+
+        <div class="analogy-card compact">
+          <div class="analogy-icon">🚗</div>
+          <div>
+            <h3>高速行驶时，方向盘不能一次打满</h3>
+            <p>
+              普通行动者-评论家像看到车偏了一点，就可能猛打方向盘；PPO 像加入转向限速器，每次只允许有限修正。
+              它不禁止策略进步，只是不让一次偶然经验把整个行为方式推翻。
+            </p>
+          </div>
+        </div>
+
+        <div class="ratio-demo">
+          <div class="ratio-side old">
+            <span>旧策略</span>
+            <strong>向右 40%</strong>
+            <small>收集经验时的概率</small>
+          </div>
+          <i>→</i>
+          <div class="ratio-side new">
+            <span>新策略</span>
+            <strong>向右 60%</strong>
+            <small>训练几轮后的概率</small>
+          </div>
+          <div class="ratio-result">
+            <span>概率比</span>
+            <b>60% ÷ 40% = 1.5</b>
+            <small>PPO 会按上限 1.2 进行优化</small>
+          </div>
+        </div>
+
+        <div class="formula-card ppo-formula">
+          <div class="formula">rₜ(θ) = π<sub>new</sub>(aₜ|sₜ) ÷ π<sub>old</sub>(aₜ|sₜ)</div>
+          <div class="clip-track">
+            <span>0.8</span><i><em></em></i><span>1.2</span>
+          </div>
+          <p>
+            当裁剪系数是 `0.2` 时，PPO 重点关注概率比 `0.8～1.2` 的安全区间。
+            超出区间后，继续把策略推得更远不会获得额外优化收益。
+          </p>
+        </div>
+
+        <div class="concept-grid four">
+          <article>
+            <h3>概率比（Probability Ratio）</h3>
+            <p>同一个动作在新旧策略下的概率之比。1 表示没有变化，1.2 表示概率增加约 20%。</p>
+          </article>
+          <article>
+            <h3>裁剪（Clipping）</h3>
+            <p>把优化收益限制在安全区间，避免行动者被一批偶然的高优势样本推得太远。</p>
+          </article>
+          <article>
+            <h3>训练轮次（Epoch）</h3>
+            <p>同一批经验可以重复训练多轮，但每轮都使用旧概率作为参照，裁剪负责控制变化。</p>
+          </article>
+          <article>
+            <h3>近似 KL 散度（Approximate KL Divergence）</h3>
+            <p>衡量新旧策略整体差异。数值突然变大通常表示更新过猛，需要降低学习率或训练轮数。</p>
+          </article>
+        </div>
+
+        <div class="ppo-workflow">
+          <div><span>1</span><b>用旧策略收集 128 步</b><small>保存状态、动作和旧概率</small></div>
+          <div><span>2</span><b>评论家计算优势值</b><small>判断动作比预期好多少</small></div>
+          <div><span>3</span><b>切成小批量训练 4 轮</b><small>提高一批经验的利用率</small></div>
+          <div><span>4</span><b>裁剪概率比</b><small>限制单次策略变化</small></div>
+        </div>
+
+        <details class="code-explanation" open>
+          <summary>查看 PPO 裁剪更新核心代码</summary>
+          <pre><code><span class="comment"># 新旧策略对同一个动作的概率比</span>
+ratio = exp(new_log_probability - old_log_probability)
+
+<span class="comment"># 普通目标：优势为正时，希望提高该动作概率</span>
+unclipped = advantage * ratio
+
+<span class="comment"># 安全目标：把概率比限制在 0.8 到 1.2</span>
+clipped = advantage * clamp(ratio, 0.8, 1.2)
+
+<span class="comment"># 选择更保守的收益，避免策略一次改变过大</span>
+actor_objective = minimum(unclipped, clipped)
+actor_loss = -actor_objective.mean()</code></pre>
+        </details>
+
+        <div class="callout info">
+          <strong>PPO 为什么可以重复使用同一批经验？</strong>
+          <p>
+            普通策略梯度在策略更新后，旧经验很快就与新策略不匹配。PPO 保存收集经验时的旧概率，
+            每次更新都计算新旧概率比，并用裁剪阻止偏离过大，因此能够相对安全地对同一批经验训练多轮。
+          </p>
+        </div>
+
+        <h3 class="subheading">第一步：先理解“旧经验为什么会过期”</h3>
+        <div class="experience-reuse-story">
+          <article>
+            <span>收集经验时</span>
+            <h3>旧策略像原来的司机</h3>
+            <p>在状态 s 下，旧策略有 40% 概率向右。它真的向右了，于是我们记录状态、动作、奖励和旧概率 0.40。</p>
+          </article>
+          <i>→</i>
+          <article>
+            <span>更新策略后</span>
+            <h3>新策略已经换了驾驶习惯</h3>
+            <p>同一个状态下，新策略可能有 80% 概率向右。旧数据不是新策略亲自采集的，二者出现这种动作的频率不同。</p>
+          </article>
+          <i>→</i>
+          <article>
+            <span>直接复用的问题</span>
+            <h3>把旧频率当新频率会算偏</h3>
+            <p>好比拿冬天顾客的点餐记录直接推断夏天需求：记录并非没用，但必须修正两个时期的差异。</p>
+          </article>
+        </div>
+
+        <div class="formula-card importance-formula">
+          <div class="formula">重要性比率 r = 新策略概率 ÷ 旧策略概率</div>
+          <p>
+            重要性采样（Importance Sampling, IS）的直觉是：旧数据在新策略下更常见，就给更大权重；
+            更少见，就给更小权重。PPO 不需要真的重新经历同一步，而是用概率比做“新旧频率换算”。
+          </p>
+        </div>
+
+        <div class="reuse-number-cases">
+          <article>
+            <span>温和变化</span>
+            <b>0.48 ÷ 0.40 = 1.20</b>
+            <p>新策略只比旧策略更偏爱该动作 20%，这条旧经验仍与新策略比较接近，可以继续训练。</p>
+          </article>
+          <article>
+            <span>变化过猛</span>
+            <b>0.80 ÷ 0.40 = 2.00</b>
+            <p>动作概率已经翻倍，旧数据与新策略差距很大。若优势为正，PPO 只按上限 1.20 计算收益。</p>
+          </article>
+          <article>
+            <span>方向变化过大</span>
+            <b>0.10 ÷ 0.40 = 0.25</b>
+            <p>新策略几乎不再做这个动作。若继续把它当成当前常见经验，估计方差会很大，因此也要受到裁剪约束。</p>
+          </article>
+        </div>
+
+        <div class="reuse-lifecycle">
+          <div><span>第 1 轮</span><b>旧概率作为固定参照</b><small>同一批数据第一次更新</small></div>
+          <i>→</i>
+          <div><span>第 2～4 轮</span><b>反复计算新旧概率比</b><small>每轮策略都变一点，但不能跑太远</small></div>
+          <i>→</i>
+          <div><span>更新结束</span><b>整批经验丢弃</b><small>重新用当前策略采集新 rollout</small></div>
+        </div>
+
+        <div class="callout warning">
+          <strong>PPO 的“重复使用”很有限，不等于经验回放</strong>
+          <p>
+            PPO 通常只把同一批经验训练几轮，然后立刻丢弃；它不能把几小时前、几十个旧策略产生的数据长期混在一起训练。
+            因此 PPO 仍属于同策略方法（On-Policy Method）。第七课的 SAC 属于异策略方法（Off-Policy Method），
+            才会把来自许多旧策略的经验长期保存在回放池里反复抽取。
+          </p>
+        </div>
+      </section>
+
+      <section id="ppo-lab" class="section lab-section">
+        <div class="section-heading">
+          <span>12</span>
+          <div>
+            <p>PPO LAB</p>
+            <h2>策略限速实验台：策略学得好，也要改得稳</h2>
+          </div>
+        </div>
+
+        <div id="ppo-status" class="data-status loading">正在读取 PPO 训练数据……</div>
+
+        <div class="cartpole-layout">
+          <div class="lab-panel cartpole-panel">
+            <canvas id="ppo-canvas" width="900" height="380"></canvas>
+            <div class="panel-toolbar centered">
+              <button id="ppo-reset" type="button">重新播放</button>
+              <button id="ppo-play" class="accent" type="button">暂停</button>
+            </div>
+          </div>
+          <div class="lab-panel policy-panel critic-live-panel">
+            <h3>当前策略与评论家</h3>
+            <div class="probability-row left">
+              <div><span>向左</span><b id="ppo-left-value">50.0%</b></div>
+              <i><em id="ppo-left-bar"></em></i>
+            </div>
+            <div class="probability-row right">
+              <div><span>向右</span><b id="ppo-right-value">50.0%</b></div>
+              <i><em id="ppo-right-bar"></em></i>
+            </div>
+            <div class="critic-numbers">
+              <div><span>评论家预测 V(s)</span><b id="ppo-value">0.00</b></div>
+              <div><span>事后实际回报 Gₜ</span><b id="ppo-return">0.00</b></div>
+              <div class="advantage"><span>优势值 A</span><b id="ppo-advantage">0.00</b></div>
+            </div>
+            <div class="policy-choice">
+              <span>当前实际选择</span>
+              <strong id="ppo-action">等待数据</strong>
+            </div>
+            <div class="frame-progress"><i id="ppo-progress"></i></div>
+          </div>
+        </div>
+
+        <div class="ppo-diagnostics">
+          <article><span>裁剪系数</span><b id="ppo-clip-coefficient">0.20</b><small>允许概率比约在 0.8～1.2</small></article>
+          <article><span>平均裁剪比例</span><b id="ppo-clip-fraction">0.0%</b><small>有多少样本触碰限速器</small></article>
+          <article><span>最终近似 KL</span><b id="ppo-kl">0.0000</b><small>新旧策略整体差异</small></article>
+          <article><span>经验重复次数</span><b id="ppo-epochs">4</b><small>同一批 rollout 的训练轮数</small></article>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-heading">
+            <div><h3>PPO 训练回报</h3><p>观察它是否在提高回报的同时保持更新稳定。</p></div>
+            <div id="ppo-metrics" class="metrics"></div>
+          </div>
+          <canvas id="ppo-reward-chart" height="300"></canvas>
+        </div>
+
+        <div class="comparison-table">
+          <div class="comparison-head"><span>比较问题</span><b>普通行动者-评论家</b><b>PPO</b></div>
+          <div><span>策略更新</span><b>直接按照优势调整</b><b>参考旧概率并裁剪变化</b></div>
+          <div><span>经验利用</span><b>通常更新一次</b><b>同一批数据训练多轮</b></div>
+          <div><span>稳定机制</span><b>主要依靠小学习率</b><b>概率比裁剪 + 梯度裁剪</b></div>
+          <div><span>额外监控</span><b>策略熵和评估回报</b><b>再加入裁剪比例和近似 KL</b></div>
+        </div>
+      </section>
+
+      <section id="continuous-control" class="section tinted">
+        <div class="section-heading">
+          <span>13</span>
+          <div>
+            <p>PROJECT SIX</p>
+            <h2>连续动作控制：不再只选左右，而是决定推多大力</h2>
+          </div>
+        </div>
+
+        <p class="lead">
+          前五个项目使用离散动作空间（Discrete Action Space），动作都像按按钮：向左或向右。
+          真实机器人却经常要控制油门、转矩、舵角和关节力度，因此需要连续动作空间
+          （Continuous Action Space）。本课使用 MuJoCo 的倒立摆环境，让智能体输出
+          <code>-3.0～+3.0</code> 之间的任意推力。
+        </p>
+
+        <div class="analogy-card compact">
+          <div class="analogy-icon">🚰</div>
+          <div>
+            <h3>离散动作像电灯开关，连续动作像水龙头</h3>
+            <p>
+              电灯开关通常只有“开”和“关”，这就是离散动作；水龙头却能拧到 10%、35% 或 82%，
+              这就是连续动作。控制倒立摆时，只会“全力向左或全力向右”太粗暴，智能体还要学会轻推和收力。
+            </p>
+          </div>
+        </div>
+
+        <div class="comparison-table action-comparison">
+          <div class="comparison-head"><span>比较问题</span><b>离散动作空间</b><b>连续动作空间</b></div>
+          <div><span>可选动作</span><b>有限个按钮，例如左、右</b><b>一个区间内的任意数值</b></div>
+          <div><span>策略输出</span><b>每个按钮的概率</b><b>动作分布的均值与标准差</b></div>
+          <div><span>生活例子</span><b>选电梯楼层、下棋落子</b><b>踩油门、转方向盘、关节发力</b></div>
+          <div><span>本课动作</span><b>不再使用</b><b>-3 向左，+3 向右</b></div>
+        </div>
+
+        <h3 class="subheading">先认识这次的 MuJoCo 倒立摆</h3>
+        <div class="state-strip continuous-state-strip">
+          <div><span>x</span><strong>小车位置</strong><small>小车在轨道上的左右位置</small></div>
+          <div><span>θ</span><strong>杆的角度</strong><small>越接近 0，杆越接近竖直</small></div>
+          <div><span>ẋ</span><strong>小车速度</strong><small>小车正在向哪边移动、多快</small></div>
+          <div><span>θ̇</span><strong>角速度</strong><small>杆正在向哪边倒、倒得多快</small></div>
+        </div>
+
+        <div class="concept-grid three">
+          <article>
+            <span class="concept-number">环境</span>
+            <h3>MuJoCo 倒立摆</h3>
+            <p>MuJoCo 负责计算小车、杆、重力和接触等物理变化；智能体只读取 4 个状态数值。</p>
+          </article>
+          <article>
+            <span class="concept-number">动作</span>
+            <h3>单维连续推力</h3>
+            <p>负数向左推，正数向右推，绝对值代表力度；例如 +0.4 是轻推，-2.8 是用力左推。</p>
+          </article>
+          <article>
+            <span class="concept-number">奖励</span>
+            <h3>每坚持一步得 1 分</h3>
+            <p>杆没有倒下就继续得分，最多坚持 1000 步。因此回报 1000 表示完成整场挑战。</p>
+          </article>
+        </div>
+
+        <div class="callout info">
+          <strong>为什么状态仍然只有 4 个数，动作却变难了？</strong>
+          <p>
+            难点不只在“看见什么”，还在“怎样表达选择”。以前网络只需比较两个按钮；现在动作有无限多个可能值，
+            不可能给每个小数都单独输出一个概率，所以我们让网络输出一个概率分布。
+          </p>
+        </div>
+
+        <h3 class="subheading">高斯策略：先说“想推多少”，再说“愿意尝试多远”</h3>
+        <p>
+          高斯策略（Gaussian Policy）通常输出两个核心数：均值（Mean, μ）与标准差
+          （Standard Deviation, σ）。它们共同组成高斯分布（Gaussian Distribution）：
+          均值决定动作中心，标准差决定探索范围。
+        </p>
+
+        <div class="gaussian-story">
+          <article>
+            <span>μ = +1.2</span>
+            <h3>均值决定主要方向</h3>
+            <p>网络当前认为“向右推 1.2”最合适。可以把它理解为司机此刻最想踩到的油门位置。</p>
+          </article>
+          <article>
+            <span>σ = 0.15</span>
+            <h3>小标准差：更有把握</h3>
+            <p>采样大多靠近 +1.2，行为稳定，但很少尝试其他力度，可能错过更好的动作。</p>
+          </article>
+          <article>
+            <span>σ = 1.20</span>
+            <h3>大标准差：更爱探索</h3>
+            <p>有时轻推，有时重推，能发现新办法，但训练轨迹也更容易摇晃甚至失败。</p>
+          </article>
+        </div>
+
+        <div class="formula-card">
+          <div class="formula">u ∼ Normal(μ, σ)　→　y = tanh(u)　→　a = 3y</div>
+          <div class="formula-words continuous-formula-words">
+            <span>高斯分布采样原始动作 u</span><b>→</b><span>压到 -1～+1</span><b>→</b><span>映射为 -3～+3 的推力</span>
+          </div>
+          <p>
+            双曲正切函数（Hyperbolic Tangent, tanh）像一条带护栏的道路：无论原始动作多大，
+            输出都不会越过 -1 和 +1。再乘以 3，就能保证 MuJoCo 收到的动作永远合法。
+          </p>
+        </div>
+
+        <div class="squash-pipeline">
+          <div><span>1</span><b>网络输出 μ、σ</b><small>例如 μ=0.4，σ=0.8</small></div>
+          <i>→</i>
+          <div><span>2</span><b>采样原始动作</b><small>这一次可能抽到 u=1.1</small></div>
+          <i>→</i>
+          <div><span>3</span><b>tanh 压缩</b><small>tanh(1.1)≈0.80</small></div>
+          <i>→</i>
+          <div><span>4</span><b>映射到环境</b><small>0.80×3≈+2.4</small></div>
+        </div>
+
+        <details class="code-explanation" open>
+          <summary>查看高斯采样、动作压缩和 PPO 更新核心代码</summary>
+          <pre><code><span class="comment"># 1. 行动者给出高斯分布的中心与宽度</span>
+action_mean, action_std, state_value = network(observation)
+distribution = Normal(action_mean, action_std)
+
+<span class="comment"># 2. 训练时随机采样，让策略能探索不同力度</span>
+raw_action = distribution.rsample()
+
+<span class="comment"># 3. tanh 把无限范围压缩到 -1～+1，再映射到 -3～+3</span>
+squashed_action = tanh(raw_action)
+bounded_action = action_bias + action_scale * squashed_action
+
+<span class="comment"># 4. 压缩会改变概率密度，因此对对数概率做雅可比修正</span>
+correction = log(action_scale * (1 - squashed_action²) + 1e-6)
+log_probability = distribution.log_prob(raw_action) - correction
+
+<span class="comment"># 5. PPO 仍比较新旧策略对“同一个连续动作”的对数概率</span>
+ratio = exp(new_log_probability - old_log_probability)
+actor_loss = clipped_ppo_loss(ratio, advantage)</code></pre>
+        </details>
+
+        <div class="callout warning">
+          <strong>概率不再是“这个动作占 60%”</strong>
+          <p>
+            连续数值中，精确抽到 1.200000... 的概率几乎为零，因此连续策略使用概率密度
+            （Probability Density）和对数概率（Log Probability）。你可以把概率密度理解为：
+            某个动作附近有多拥挤、多容易被抽到。PPO 比较的仍是新旧策略对已执行动作的相对偏好。
+            tanh 改变了这种密度，因此代码还要使用雅可比修正（Jacobian Correction）把概率账本改正确。
+          </p>
+        </div>
+
+        <h3 class="subheading">为什么“精确抽到 1.2”的概率是零？</h3>
+        <div class="density-comparison">
+          <article>
+            <span>离散情况</span>
+            <h3>抽扑克牌可以问“正好是哪一张”</h3>
+            <p>一副 52 张牌中，抽到红桃 A 的概率是 1/52，因为所有可能结果可以一张张数出来。</p>
+          </article>
+          <article>
+            <span>连续情况</span>
+            <h3>测身高不能只问“正好多少”</h3>
+            <p>身高可能是 170、170.1、170.01、170.001……小数可以无限细分，精确等于 170.000000... 的单点概率为零。</p>
+          </article>
+          <article class="highlight">
+            <span>正确问法</span>
+            <h3>问一个小区间的概率</h3>
+            <p>例如“身高在 169.5～170.5 厘米之间”。概率密度越高，这段区间下方的面积越大，被抽到的概率也越大。</p>
+          </article>
+        </div>
+
+        <div class="formula-card density-formula">
+          <div class="formula">区间概率 ≈ 该处概率密度 × 区间宽度</div>
+          <div class="density-blocks">
+            <div><span>密度 0.30</span><b>×</b><span>宽度 0.10</span><b>=</b><strong>概率约 0.03</strong></div>
+            <div><span>密度 0.05</span><b>×</b><span>宽度 0.10</span><b>=</b><strong>概率约 0.005</strong></div>
+          </div>
+          <p>密度本身不是百分比，甚至可能大于 1；真正必须落在 0～1 之间的是某个区间下方的总面积。</p>
+        </div>
+
+        <h3 class="subheading">为什么代码偏爱“对数概率”？</h3>
+        <div class="log-probability-story">
+          <article>
+            <span>直接相乘</span>
+            <b>0.001 × 0.002 × 0.0005 × …</b>
+            <p>一长串很小的概率相乘，很快会小到计算机只能记成 0，这叫数值下溢（Numerical Underflow）。</p>
+          </article>
+          <article>
+            <span>取对数后</span>
+            <b>log 0.001 + log 0.002 + log 0.0005 + …</b>
+            <p>乘法变成加法，数值不容易消失；新旧概率相除也能写成 <code>exp(new_logp - old_logp)</code>。</p>
+          </article>
+        </div>
+
+        <h3 class="subheading">雅可比修正到底在修正什么？</h3>
+        <div class="analogy-card compact">
+          <div class="analogy-icon">📏</div>
+          <div>
+            <h3>把 tanh 想成一把被挤压的橡皮尺</h3>
+            <p>
+              原始动作轴从负无穷延伸到正无穷，tanh 把整条轴塞进 -1～+1。靠近 0 的刻度较宽，靠近两端的刻度被挤得很密。
+              同样数量的样本被塞进更窄的动作区间后，局部概率密度必然改变，不能继续沿用压缩前的数字。
+            </p>
+          </div>
+        </div>
+
+        <div class="jacobian-cases">
+          <article>
+            <span>原始动作 u = 0</span>
+            <b>a = 3·tanh(0) = 0</b>
+            <p>局部斜率约为 3，原始坐标的一小段映射后仍比较宽，挤压不明显。</p>
+          </article>
+          <article>
+            <span>原始动作 u = 2</span>
+            <b>a ≈ 3·0.964 = 2.89</b>
+            <p>局部斜率只剩约 0.21，同样宽度被压到约十四分之一，动作密度会因此改变。</p>
+          </article>
+          <article class="highlight">
+            <span>变换后的密度</span>
+            <b>p(a) = p(u) ÷ |da/du|</b>
+            <p>代码在对数空间中写成“原始对数密度减去斜率的对数”，这就是雅可比修正。</p>
+          </article>
+        </div>
+
+        <div class="method-comparison">
+          <article>
+            <span>训练阶段</span>
+            <h3>随机策略（Stochastic Policy）</h3>
+            <div class="method-flow"><b>读取 μ、σ</b><i>→</i><b>随机采样</b><i>→</i><b>探索不同推力</b></div>
+            <p>
+              假设 μ=0.4、σ=0.8，这一帧可能抽到 -0.2，下一帧可能抽到 1.1。训练回报可能忽高忽低，
+              因为策略故意用这些随机偏差寻找更好的推力。
+            </p>
+          </article>
+          <article class="highlight">
+            <span>评估阶段</span>
+            <h3>确定性动作（Deterministic Action）</h3>
+            <div class="method-flow"><b>读取 μ</b><i>→</i><b>计算 3·tanh(μ)</b><i>→</i><b>稳定执行</b></div>
+            <p>
+              网页执行的是压缩后的中心动作 <code>3·tanh(μ)</code>。严格来说，它不一定等于变换后分布的数学期望，
+              但它稳定、可重复，适合回答“策略中心学会没有”。
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section id="continuous-lab" class="section lab-section">
+        <div class="section-heading">
+          <span>14</span>
+          <div>
+            <p>MUJOCO CONTINUOUS CONTROL LAB</p>
+            <h2>连续推力实验台：看智能体怎样轻推、回正和收力</h2>
+          </div>
+        </div>
+
+        <div id="continuous-status" class="data-status loading">正在读取连续动作 PPO 训练数据……</div>
+
+        <div class="cartpole-layout continuous-layout">
+          <div class="lab-panel cartpole-panel">
+            <canvas id="continuous-canvas" width="900" height="380"></canvas>
+            <div class="panel-toolbar centered">
+              <button id="continuous-reset" type="button">重新播放</button>
+              <button id="continuous-play" class="accent" type="button">暂停</button>
+            </div>
+          </div>
+
+          <div class="lab-panel continuous-policy-panel">
+            <h3>当前连续策略</h3>
+            <p>评估阶段执行压缩后的中心动作；阴影表示训练时大致会探索的范围。</p>
+            <div class="force-readout">
+              <div><span>实际推力 a</span><strong id="continuous-force">0.000</strong></div>
+              <div class="action-meter">
+                <span>-3</span>
+                <i>
+                  <em id="continuous-std-band"></em>
+                  <b id="continuous-force-marker"></b>
+                </i>
+                <span>+3</span>
+              </div>
+              <small><i></i> 绿色阴影：均值附近约一个标准差　<b></b> 深色竖线：当前动作</small>
+            </div>
+            <div class="critic-numbers continuous-numbers">
+              <div><span>压缩后中心动作 3·tanh(μ)</span><b id="continuous-mean">0.000</b></div>
+              <div><span>动作尺度探索宽度（近似）</span><b id="continuous-std">0.000</b></div>
+              <div><span>评论家预测 V(s)</span><b id="continuous-value">0.00</b></div>
+              <div><span>事后折扣回报 Gₜ</span><b id="continuous-return">0.00</b></div>
+              <div class="advantage"><span>估算优势 A</span><b id="continuous-advantage">0.00</b></div>
+            </div>
+            <div class="frame-progress"><i id="continuous-progress"></i></div>
+          </div>
+        </div>
+
+        <div class="continuous-telemetry">
+          <article><span>小车位置 x</span><b id="continuous-position">0.000</b><small>轨道中心约为 0</small></article>
+          <article><span>杆角度 θ</span><b id="continuous-angle">0.000 rad</b><small>越接近 0 越竖直</small></article>
+          <article><span>小车速度 ẋ</span><b id="continuous-velocity">0.000</b><small>正数表示向右</small></article>
+          <article><span>杆角速度 θ̇</span><b id="continuous-angular-velocity">0.000</b><small>反映杆倒下的趋势</small></article>
+        </div>
+
+        <div class="chart-card gaussian-chart-card">
+          <div class="chart-heading">
+            <div>
+              <h3>当前动作分布示意</h3>
+              <p>曲线越宽，训练时越爱尝试远离中心的推力；这是动作尺度上的直观近似图。</p>
+            </div>
+          </div>
+          <canvas id="continuous-gaussian-canvas" height="220"></canvas>
+        </div>
+
+        <div class="ppo-diagnostics continuous-diagnostics">
+          <article><span>合法动作范围</span><b id="continuous-range">-3 ～ +3</b><small>tanh 保证动作不越界</small></article>
+          <article><span>实际训练步数</span><b id="continuous-steps">0</b><small>达到目标后提前停止</small></article>
+          <article><span>最终动作标准差</span><b id="continuous-final-std">0.000</b><small>保留的探索宽度</small></article>
+          <article><span>平均裁剪比例</span><b id="continuous-clip-fraction">0.0%</b><small>触碰 PPO 限速器的样本</small></article>
+          <article><span>最终近似 KL</span><b id="continuous-kl">0.0000</b><small>新旧策略整体变化</small></article>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-heading">
+            <div>
+              <h3>独立评估回报</h3>
+              <p>每隔 5 次更新关闭随机采样进行评估；满分 1000 表示杆坚持完整回合。</p>
+            </div>
+            <div id="continuous-metrics" class="metrics"></div>
+          </div>
+          <canvas id="continuous-reward-chart" height="300"></canvas>
+        </div>
+
+        <div class="callout info">
+          <strong>这次本机真实训练发生了什么？</strong>
+          <p>
+            训练在中央处理器（Central Processing Unit, CPU）上运行约 40 秒，在 102400 个环境交互步后提前停止。
+            最终确定性策略的 10 次评估平均回报为 1000；训练轨迹仍可能失败，是因为训练阶段继续随机采样来探索。
+          </p>
+        </div>
+      </section>
+
+      <section id="sac" class="section tinted">
+        <div class="section-heading">
+          <span>15</span>
+          <div>
+            <p>PROJECT SEVEN</p>
+            <h2>SAC：把旧经验放进错题本，隔很久仍能反复学习</h2>
+          </div>
+        </div>
+
+        <p class="lead">
+          上一处疑问的答案是：PPO 只能在策略变化不大时，短暂重复使用同一批经验。
+          软行动者-评论家（Soft Actor-Critic, SAC）换了一条路线：它学习动作价值 Q(s,a)，
+          因此可以从经验回放池中抽取许多旧策略留下的数据，属于异策略方法（Off-Policy Method）。
+        </p>
+
+        <div class="analogy-card compact">
+          <div class="analogy-icon">📚</div>
+          <div>
+            <h3>PPO 像当堂订正，SAC 像长期错题本</h3>
+            <p>
+              PPO 收集一页练习，当堂订正四遍，然后把纸丢掉；SAC 把每道题都存进错题本，
+              今天可以抽到昨天的题，下周也可能再次抽到。这样每次与环境交互得到的经验能发挥更多次作用。
+            </p>
+          </div>
+        </div>
+
+        <div class="comparison-table">
+          <div class="comparison-head"><span>比较问题</span><b>PPO</b><b>SAC</b></div>
+          <div><span>方法类别</span><b>同策略：数据要接近当前策略</b><b>异策略：允许来自许多旧策略</b></div>
+          <div><span>经验保存</span><b>一批 rollout 用几轮后丢弃</b><b>长期放入经验回放池</b></div>
+          <div><span>主要修正办法</span><b>新旧概率比与裁剪</b><b>学习 Q(s,a)，用 Bellman 目标训练</b></div>
+          <div><span>样本效率</span><b>通常需要不断采集新数据</b><b>同一条经验可能被抽到很多次</b></div>
+        </div>
+
+        <h3 class="subheading">这次控制什么：Pendulum 摆锤</h3>
+        <div class="concept-grid three">
+          <article>
+            <span class="concept-number">状态 1、2</span>
+            <h3>cos θ 与 sin θ</h3>
+            <p>用圆上的横坐标和纵坐标表示角度，避免 +π 与 -π 在数值上突然跳变。</p>
+          </article>
+          <article>
+            <span class="concept-number">状态 3</span>
+            <h3>角速度 θ̇</h3>
+            <p>告诉智能体摆锤正在向哪边转、转得多快；只看角度无法判断下一刻的运动趋势。</p>
+          </article>
+          <article>
+            <span class="concept-number">动作</span>
+            <h3>连续转矩 -2～+2</h3>
+            <p>负数逆时针发力，正数顺时针发力。智能体要学会先荡起来，再在顶部减速稳定。</p>
+          </article>
+        </div>
+
+        <div class="formula-card pendulum-reward-formula">
+          <div class="formula">奖励 = -(角度误差² + 0.1·角速度² + 0.001·转矩²)</div>
+          <p>
+            这次奖励是负数，越接近 0 越好。摆锤倒挂、旋转过快、用力过猛都会扣分。
+            就像体操评分：站到顶部只是第一步，还要稳、还要动作干净。
+          </p>
+        </div>
+
+        <h3 class="subheading">经验回放池：为什么旧数据现在能长期使用？</h3>
+        <div class="replay-buffer-demo">
+          <div class="replay-buffer-slots">
+            <span>s₁,a₁,r₁,s₂</span><span>s₂,a₂,r₂,s₃</span><span>s₇,a₇,r₇,s₈</span>
+            <span>s₃,a₃,r₃,s₄</span><span>s₉,a₉,r₉,s₁₀</span><span>s₄,a₄,r₄,s₅</span>
+          </div>
+          <div class="replay-buffer-explain">
+            <h3>随机抽取，而不是只看刚发生的顺序</h3>
+            <p>
+              连续相邻的画面很相似，像连续看十张几乎一样的照片。随机抽样会把不同时间、不同旧策略、
+              不同角度的经验混在一个小批量中，让神经网络看到更丰富、更稳定的数据。
+            </p>
+          </div>
+        </div>
+
+        <div class="callout info">
+          <strong>关键区别：SAC 学的是动作价值，而不是复刻旧策略的动作概率</strong>
+          <p>
+            一条旧经验告诉评论家：“在状态 s 做动作 a，得到了奖励 r，并到达 s′。”
+            这个物理事实不会因为当前策略变了就失效。评论家可以反复用它校正 Q(s,a)，
+            行动者再去寻找当前 Q 值高、同时保留适度随机性的动作。
+          </p>
+        </div>
+
+        <h3 class="subheading">为什么要有两个 Q 网络？</h3>
+        <div class="twin-critic-stage">
+          <article>
+            <span>评论家 1</span>
+            <h3>Q₁(s,a) = 82</h3>
+            <p>第一个估价员认为这个动作长期价值很高。</p>
+          </article>
+          <i>取较小值</i>
+          <article>
+            <span>评论家 2</span>
+            <h3>Q₂(s,a) = 67</h3>
+            <p>第二个估价员更谨慎，只给出 67。</p>
+          </article>
+          <strong>min(Q₁,Q₂) = 67</strong>
+        </div>
+
+        <div class="analogy-card compact">
+          <div class="analogy-icon">🏠</div>
+          <div>
+            <h3>双 Q 网络像请两位房屋估价师，然后采用较低报价</h3>
+            <p>
+              单个神经网络有时会因为数据噪声过度乐观。行动者若总追逐被高估的动作，错误会自我强化。
+              双评论家（Twin Critics）取较小值，不能保证永远正确，但能明显减少价值过高估计。
+            </p>
+          </div>
+        </div>
+
+        <div class="formula-card sac-target-formula">
+          <div class="formula">目标 y = r + γ[min(Q′₁,Q′₂) - α log π(a′|s′)]</div>
+          <div class="sac-target-parts">
+            <span><b>r</b>刚得到的奖励</span>
+            <span><b>min Q′</b>下一状态的保守未来价值</span>
+            <span><b>-α log π</b>保留随机性的熵奖励</span>
+          </div>
+          <p>评论家让自己的 Q(s,a) 靠近这个目标；这就是 SAC 能从回放池旧经验学习的核心。</p>
+        </div>
+
+        <h3 class="subheading">“软”字来自哪里：不仅追求高回报，也奖励适度随机</h3>
+        <div class="entropy-balance">
+          <article>
+            <span>只追求 Q 值</span>
+            <h3>很快认定一种动作</h3>
+            <p>可能过早锁死在局部方案，例如只会向一个方向猛甩，遇到不同初始角度就失败。</p>
+          </article>
+          <div class="temperature-dial">
+            <span>温度 α</span>
+            <b>回报 ← 平衡 → 随机性</b>
+            <small>自动调节</small>
+          </div>
+          <article>
+            <span>加入策略熵</span>
+            <h3>保留多种可行动作</h3>
+            <p>在多个动作价值接近时不要太早押注，继续探索，往往能学到更稳健的摆起方式。</p>
+          </article>
+        </div>
+
+        <div class="callout warning">
+          <strong>温度 α 不是环境温度</strong>
+          <p>
+            温度参数（Temperature Parameter, α）控制“随机性值多少钱”。α 大时更重视探索，α 小时更重视高 Q 动作。
+            本项目让 α 自动学习：策略太确定就升高探索压力，太随机就降低探索压力，像恒温器自动调节暖气。
+          </p>
+        </div>
+
+        <h3 class="subheading">目标网络为什么只慢慢移动？</h3>
+        <div class="target-update-demo">
+          <div><span>在线 Q 参数</span><b>100%</b><small>每次梯度更新都会变化</small></div>
+          <i>τ = 0.005</i>
+          <div><span>目标 Q 新参数</span><b>0.5% 在线 + 99.5% 旧目标</b><small>缓慢跟随，提供稳定学习目标</small></div>
+        </div>
+
+        <div class="sac-workflow">
+          <div><span>1</span><b>与环境交互一步</b><small>得到 s、a、r、s′</small></div>
+          <div><span>2</span><b>存入回放池</b><small>新旧策略经验混合保存</small></div>
+          <div><span>3</span><b>随机抽取小批量</b><small>训练两个 Q 网络</small></div>
+          <div><span>4</span><b>更新行动者与 α</b><small>兼顾高价值和适度随机</small></div>
+          <div><span>5</span><b>软更新目标网络</b><small>只向在线 Q 靠近一点</small></div>
+        </div>
+
+        <details class="code-explanation" open>
+          <summary>查看 SAC 一次更新的核心代码</summary>
+          <pre><code><span class="comment"># 从长期错题本随机抽一批旧经验</span>
+states, actions, rewards, next_states, dones = replay_buffer.sample(batch_size)
+
+<span class="comment"># 双目标评论家采用较小值，并减去温度控制的对数概率</span>
+next_action, next_logp = actor.sample(next_states)
+next_q = minimum(target_q1(next_states, next_action),
+                 target_q2(next_states, next_action))
+q_target = rewards + gamma * (1 - dones) * (next_q - alpha * next_logp)
+
+<span class="comment"># 两个评论家都学习同一个保守目标</span>
+critic_loss = mse(q1(states, actions), q_target)
+critic_loss += mse(q2(states, actions), q_target)
+
+<span class="comment"># 行动者寻找 Q 值高、同时不过早失去随机性的动作</span>
+new_action, logp = actor.sample(states)
+actor_loss = (alpha * logp - minimum(q1(states, new_action),
+                                    q2(states, new_action))).mean()
+
+<span class="comment"># 目标网络只跟随 0.5%，避免学习目标剧烈晃动</span>
+target_q = 0.995 * target_q + 0.005 * online_q</code></pre>
+        </details>
+      </section>
+
+      <section id="sac-lab" class="section lab-section">
+        <div class="section-heading">
+          <span>16</span>
+          <div>
+            <p>SAC REPLAY BUFFER LAB</p>
+            <h2>经验回放实验台：看摆锤怎样荡起、刹车并稳定</h2>
+          </div>
+        </div>
+
+        <div id="sac-status" class="data-status loading">正在读取 SAC 训练数据……</div>
+
+        <div class="cartpole-layout sac-layout">
+          <div class="lab-panel sac-canvas-panel">
+            <canvas id="sac-canvas" width="900" height="430"></canvas>
+            <div class="panel-toolbar centered">
+              <button id="sac-reset" type="button">重新播放</button>
+              <button id="sac-play" class="accent" type="button">暂停</button>
+            </div>
+          </div>
+
+          <div class="lab-panel continuous-policy-panel">
+            <h3>当前策略与双评论家</h3>
+            <p>转矩为正表示顺时针，负数表示逆时针；奖励和 Q 值越接近 0 越好。</p>
+            <div class="force-readout">
+              <div><span>当前转矩 a</span><strong id="sac-torque">0.000</strong></div>
+              <div class="action-meter sac-action-meter">
+                <span>-2</span>
+                <i>
+                  <em id="sac-std-band"></em>
+                  <b id="sac-torque-marker"></b>
+                </i>
+                <span>+2</span>
+              </div>
+            </div>
+            <div class="critic-numbers continuous-numbers">
+              <div><span>中心动作</span><b id="sac-center">0.000</b></div>
+              <div><span>探索宽度（近似）</span><b id="sac-std">0.000</b></div>
+              <div><span>即时奖励 r</span><b id="sac-reward">0.00</b></div>
+              <div><span>评论家 Q₁</span><b id="sac-q-one">0.00</b></div>
+              <div><span>评论家 Q₂</span><b id="sac-q-two">0.00</b></div>
+              <div><span>保守值 min(Q₁,Q₂)</span><b id="sac-q-min">0.00</b></div>
+              <div><span>事后折扣回报 Gₜ</span><b id="sac-return">0.00</b></div>
+            </div>
+            <div class="frame-progress"><i id="sac-progress"></i></div>
+          </div>
+        </div>
+
+        <div class="continuous-telemetry sac-telemetry">
+          <article><span>摆锤角度 θ</span><b id="sac-angle">0.000 rad</b><small>0 表示竖直向上</small></article>
+          <article><span>角速度 θ̇</span><b id="sac-angular-velocity">0.000</b><small>绝对值越小越稳定</small></article>
+          <article><span>温度参数 α</span><b id="sac-temperature">0.000</b><small>控制随机性的价值</small></article>
+          <article><span>代表轨迹回报</span><b id="sac-trajectory-return">0.0</b><small>越接近 0 越好</small></article>
+        </div>
+
+        <div class="chart-card replay-live-card">
+          <div class="chart-heading">
+            <div><h3>经验回放池</h3><p>训练时来自不同旧策略的经验都会进入这里，再被随机反复抽取。</p></div>
+            <strong id="sac-buffer-size">0 / 100000</strong>
+          </div>
+          <div class="replay-meter"><i id="sac-buffer-fill"></i></div>
+          <div class="replay-samples">
+            <span>旧策略 A 的下落经验</span>
+            <span>随机探索的猛推经验</span>
+            <span>旧策略 B 的摆起经验</span>
+            <span>当前策略的顶部刹车经验</span>
+          </div>
+        </div>
+
+        <div class="ppo-diagnostics continuous-diagnostics">
+          <article><span>实际环境步数</span><b id="sac-steps">0</b><small>达到课程目标后提前停止</small></article>
+          <article><span>梯度更新次数</span><b id="sac-updates">0</b><small>旧经验被反复抽取训练</small></article>
+          <article><span>最终温度 α</span><b id="sac-final-temperature">0.000</b><small>自动学习出的探索权重</small></article>
+          <article><span>最终 Q 分歧</span><b id="sac-q-disagreement">0.000</b><small>两个评论家的平均差异</small></article>
+          <article><span>网络参数</span><b id="sac-parameters">0</b><small>行动者与两个评论家合计</small></article>
+        </div>
+
+        <div class="chart-card">
+          <div class="chart-heading">
+            <div>
+              <h3>SAC 独立评估回报</h3>
+              <p>纵轴越接近 0 越好；曲线展示关闭随机采样后的中心策略表现。</p>
+            </div>
+            <div id="sac-metrics" class="metrics"></div>
+          </div>
+          <canvas id="sac-reward-chart" height="300"></canvas>
+        </div>
+
+        <div class="callout info">
+          <strong>本机真实训练结果</strong>
+          <p>
+            SAC 在中央处理器（Central Processing Unit, CPU）上约 59 秒完成，10000 个环境步后提前停止。
+            10 次独立评估平均回报约 -155，代表性动画轨迹约 -124；奖励越接近 0 越好。
+            它能从接近向下的初始角度把摆锤荡到顶部，并把角速度降到接近 0。
+          </p>
+        </div>
+      </section>
+
+
+      <section id="experiments" class="section tinted">
+        <div class="section-heading">
+          <span>17</span>
+          <div>
+            <p>TRY IT YOURSELF</p>
+            <h2>不要只看结果：修改一个参数，再观察行为变化</h2>
+          </div>
+        </div>
+
+        <div class="experiment-grid">
+          <article>
+            <span>实验 A</span>
+            <h3>取消每步惩罚</h3>
+            <p>把 `step_reward` 从 `-0.1` 改成 `0`，观察机器人是否更容易绕远路。</p>
+            <code>step_reward: float = 0.0</code>
+          </article>
+          <article>
+            <span>实验 B</span>
+            <h3>让机器人停止探索</h3>
+            <p>把初始探索率改成零，观察它在全零 Q 值表上能否顺利发现终点。</p>
+            <code>epsilon_start: float = 0.0</code>
+          </article>
+          <article>
+            <span>实验 C</span>
+            <h3>减少 CartPole 训练步数</h3>
+            <p>只训练 3000 步，再与 150000 步结果比较，理解经验数量为什么重要。</p>
+            <code>--steps 3000</code>
+          </article>
+          <article>
+            <span>实验 D</span>
+            <h3>去掉熵奖励</h3>
+            <p>把 `entropy_coefficient` 改成零，观察动作概率是否更早接近 0% 或 100%。</p>
+            <code>entropy_coefficient: float = 0.0</code>
+          </article>
+          <article>
+            <span>实验 E</span>
+            <h3>让评论家看得更远</h3>
+            <p>把 rollout 从 5 步改成 32 步，比较反馈延迟、训练速度和最终稳定性。</p>
+            <code>rollout_steps: int = 32</code>
+          </article>
+          <article>
+            <span>实验 F</span>
+            <h3>关闭 PPO 限速器</h3>
+            <p>把裁剪系数调大到 10，近似取消裁剪，观察 KL 和训练稳定性是否变化。</p>
+            <code>clip_coefficient: float = 10.0</code>
+          </article>
+          <article>
+            <span>实验 G</span>
+            <h3>缩小连续动作探索范围</h3>
+            <p>把初始对数标准差设得更小，观察训练是否更稳定，以及是否更难发现有效的救杆动作。</p>
+            <code>self.log_standard_deviation = nn.Parameter(torch.full((action_size,), -1.5))</code>
+          </article>
+          <article>
+            <span>实验 H</span>
+            <h3>只训练十分之一的步数</h3>
+            <p>把连续 PPO 限制为 20000 步，对比评估回报，观察连续控制需要多少真实交互经验。</p>
+            <code>./scripts/run_python.sh scripts/train_continuous_ppo.py --steps 20000</code>
+          </article>
+          <article>
+            <span>实验 I</span>
+            <h3>缩小 SAC 回放池</h3>
+            <p>把容量从 100000 改成 2000，观察旧经验更快被覆盖后，评估曲线是否更不稳定。</p>
+            <code>replay_capacity: int = 2_000</code>
+          </article>
+          <article>
+            <span>实验 J</span>
+            <h3>关闭 SAC 软更新</h3>
+            <p>把更新率改成 1，使目标网络瞬间复制在线网络，观察评论家损失是否更容易震荡。</p>
+            <code>soft_update_rate: float = 1.0</code>
+          </article>
+        </div>
+
+        <div class="callout warning">
+          <strong>每次只改一个变量</strong>
+          <p>如果同时改变奖励、学习率和探索率，即使结果发生变化，你也不知道真正原因是什么。</p>
+        </div>
+      </section>
+
+      <section id="next" class="section final-section">
+        <div class="section-heading">
+          <span>18</span>
+          <div>
+            <p>NEXT STEP</p>
+            <h2>学完这七个项目后，你已经掌握了什么？</h2>
+          </div>
+        </div>
+
+        <div class="checklist">
+          <div>✓ 能把问题拆成状态、动作和奖励</div>
+          <div>✓ 能解释探索与利用为什么冲突</div>
+          <div>✓ 能读懂 Q 学习的更新过程</div>
+          <div>✓ 能解释神经网络为什么可以代替 Q 值表</div>
+          <div>✓ 能说明经验回放和目标网络解决什么问题</div>
+          <div>✓ 能区分基于价值的方法和基于策略的方法</div>
+          <div>✓ 能解释动作概率、折扣回报和熵的作用</div>
+          <div>✓ 能解释状态价值、优势值和评论家的职责</div>
+          <div>✓ 能说明为什么要独立评估并保存最佳模型</div>
+          <div>✓ 能解释新旧策略概率比与裁剪目标</div>
+          <div>✓ 能使用裁剪比例和近似 KL 判断更新是否过猛</div>
+          <div>✓ 能区分离散动作空间与连续动作空间</div>
+          <div>✓ 能解释高斯策略中均值和标准差的职责</div>
+          <div>✓ 能说明 tanh 为什么能保证动作不越界</div>
+          <div>✓ 能区分训练时随机采样与评估时确定性执行</div>
+          <div>✓ 能解释 PPO 为什么只能短暂复用一批经验</div>
+          <div>✓ 能区分同策略方法与异策略方法</div>
+          <div>✓ 能解释经验回放池如何提高样本利用率</div>
+          <div>✓ 能说明双 Q 网络、温度参数和软更新的作用</div>
+          <div>✓ 能运行训练、修改参数并观察真实结果</div>
+        </div>
+
+        <p class="lead">
+          下一阶段可以把 PPO 或 SAC 迁移到更复杂的任务，例如 MuJoCo 的双足行走、机械臂关节控制，
+          或 Gazebo 与 Isaac Sim 中的机器人。选择算法时不再只问“谁更高级”，而要问：动作是否连续、
+          环境采样是否昂贵、旧数据能否复用、训练稳定性和仿真到现实的差距如何处理。
+        </p>
+      </section>
+
+      <footer>
+        <strong>强化学习项目式学习实验室</strong>
+        <span>训练代码在本地运行，网页仅负责解释和展示。</span>
+      </footer>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
