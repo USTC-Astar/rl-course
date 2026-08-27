@@ -30,6 +30,7 @@ export default defineConfig({
     logo: '/course-mark.svg',
     nav: [
       { text: '课程首页', link: '/' },
+      { text: '面试备战', link: '/interview/' },
       {
         text: '课程章节',
         items: [
@@ -48,6 +49,7 @@ export default defineConfig({
         text: '开始学习',
         items: [
           { text: '课程首页', link: '/' },
+          { text: '强化学习岗位面试路线', link: '/interview/' },
           { text: '术语与符号速查', link: '/reference/glossary' },
           { text: '本地环境与硬件', link: '/practice/local-setup' },
         ],

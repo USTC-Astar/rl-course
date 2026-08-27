@@ -62,7 +62,12 @@ title: 术语与符号速查
 | 上置信界 | Upper Confidence Bound | UCB | “乐观估计 + 少试过的优先”的探索公式 | 第 19 课 |
 | 汤普森采样 | Thompson Sampling | TS | 按后验信念抽样一套参数再选最优的贝叶斯探索 | 第 19 课 |
 | 行为克隆 | Behavioral Cloning | BC | 用专家的“状态→动作”对做监督学习 | 第 20 课 |
+| 数据集聚合 | Dataset Aggregation | DAgger | 让当前策略访问新状态，再请专家标注并追加到训练集 | 第 20 课 |
+| 生成式对抗模仿学习 | Generative Adversarial Imitation Learning | GAIL | 用判别器学习“像不像专家”的奖励，再训练策略骗过判别器 | 第 20 课 |
 | 人类反馈强化学习 | Reinforcement Learning from Human Feedback | RLHF | 用人类偏好训练奖励模型，再用 RL 优化策略 | 第 20 课 |
+| 奖励模型 | Reward Model | RM | 把人类偏好或评价拟合成可计算奖励的模型 | 第 20 课 |
+| 直接偏好优化 | Direct Preference Optimization | DPO | 直接用偏好胜负对优化策略，绕过显式奖励模型和 PPO 阶段 | 第 20 课 |
+| 部分可观测马尔可夫决策过程 | Partially Observable Markov Decision Process | POMDP | 智能体只能看到部分状态，需要靠历史或信念状态补信息 | 面试路线 |
 
 ## 易混淆概念对照
 

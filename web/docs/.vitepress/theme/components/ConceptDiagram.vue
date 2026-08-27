@@ -83,48 +83,57 @@ defineProps<{ kind: 'agent-env-loop' | 'learning-routes' | 'backup-diagram' | 'm
   <!-- 图 3：贝尔曼一步备份树（第 0 课） -->
   <div v-else-if="kind === 'backup-diagram'" class="concept-diagram">
     <p class="diagram-title">图解：价值从“后继一步”回传——贝尔曼备份</p>
-    <svg viewBox="0 0 680 330" role="img" aria-label="状态价值等于所有动作的即时奖励加折扣后继价值的平均的树状图">
+    <svg class="diagram-wide" viewBox="0 0 760 452" role="img" aria-label="状态价值等于所有动作的即时奖励加折扣后继价值的平均的树状图">
       <defs>
         <marker id="cd-arrow3" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
           <path class="diagram-arrowhead" d="M0,0 L8,4.5 L0,9 z" />
         </marker>
       </defs>
-      <rect class="diagram-node-accent" x="270" y="16" width="140" height="56" rx="12" stroke-width="2" />
-      <text class="diagram-label" x="340" y="40" text-anchor="middle" font-size="14.5" font-weight="700">状态 s 的价值</text>
-      <text class="diagram-label-small" x="340" y="60" text-anchor="middle" font-size="12.5">V(s)：从这里出发的长期期望回报</text>
+      <rect class="diagram-node-accent" x="270" y="24" width="220" height="68" rx="14" stroke-width="2.2" />
+      <text class="diagram-label" x="380" y="52" text-anchor="middle" font-size="16" font-weight="700">当前状态 s 的价值 V(s)</text>
+      <text class="diagram-label-small" x="380" y="75" text-anchor="middle" font-size="12.5">问题：从这里出发，长期平均能拿多少分？</text>
 
-      <path class="diagram-edge" d="M 300 72 C 220 100 200 112 190 138" fill="none" stroke-width="1.8" marker-end="url(#cd-arrow3)" />
-      <path class="diagram-edge" d="M 340 72 V 138" fill="none" stroke-width="1.8" marker-end="url(#cd-arrow3)" />
-      <path class="diagram-edge" d="M 380 72 C 460 100 480 112 490 138" fill="none" stroke-width="1.8" marker-end="url(#cd-arrow3)" />
-      <text class="diagram-label-small" x="150" y="112" text-anchor="middle" font-size="11.5">以 π(a|s) 选动作</text>
-      <text class="diagram-label-small" x="530" y="112" text-anchor="middle" font-size="11.5">策略也是输入</text>
+      <rect class="diagram-node" x="62" y="150" width="162" height="56" rx="12" stroke-width="2" />
+      <text class="diagram-label" x="143" y="173" text-anchor="middle" font-size="13.5" font-weight="700">动作 a₁</text>
+      <text class="diagram-label-small" x="143" y="192" text-anchor="middle" font-size="11.5">被选概率 π(a₁|s)</text>
+      <rect class="diagram-node" x="299" y="150" width="162" height="56" rx="12" stroke-width="2" />
+      <text class="diagram-label" x="380" y="173" text-anchor="middle" font-size="13.5" font-weight="700">动作 a₂</text>
+      <text class="diagram-label-small" x="380" y="192" text-anchor="middle" font-size="11.5">被选概率 π(a₂|s)</text>
+      <rect class="diagram-node" x="536" y="150" width="162" height="56" rx="12" stroke-width="2" />
+      <text class="diagram-label" x="617" y="173" text-anchor="middle" font-size="13.5" font-weight="700">动作 a₃</text>
+      <text class="diagram-label-small" x="617" y="192" text-anchor="middle" font-size="11.5">被选概率 π(a₃|s)</text>
 
-      <rect class="diagram-node" x="120" y="138" width="140" height="48" rx="12" stroke-width="2" />
-      <text class="diagram-label" x="190" y="158" text-anchor="middle" font-size="13.5" font-weight="700">动作 a₁</text>
-      <text class="diagram-label-small" x="190" y="176" text-anchor="middle" font-size="11.5">概率 π(a₁|s)</text>
-      <rect class="diagram-node" x="270" y="138" width="140" height="48" rx="12" stroke-width="2" />
-      <text class="diagram-label" x="340" y="158" text-anchor="middle" font-size="13.5" font-weight="700">动作 a₂</text>
-      <text class="diagram-label-small" x="340" y="176" text-anchor="middle" font-size="11.5">概率 π(a₂|s)</text>
-      <rect class="diagram-node" x="420" y="138" width="140" height="48" rx="12" stroke-width="2" />
-      <text class="diagram-label" x="490" y="158" text-anchor="middle" font-size="13.5" font-weight="700">动作 a₃</text>
-      <text class="diagram-label-small" x="490" y="176" text-anchor="middle" font-size="11.5">概率 π(a₃|s)</text>
+      <path class="diagram-edge" d="M 320 92 C 246 116 188 128 143 150" fill="none" stroke-width="1.8" marker-end="url(#cd-arrow3)" />
+      <path class="diagram-edge" d="M 380 92 V 150" fill="none" stroke-width="1.8" marker-end="url(#cd-arrow3)" />
+      <path class="diagram-edge" d="M 440 92 C 514 116 572 128 617 150" fill="none" stroke-width="1.8" marker-end="url(#cd-arrow3)" />
+      <text class="diagram-label-small" x="246" y="124" text-anchor="middle" font-size="12">先按策略 π 分配动作概率</text>
+      <text class="diagram-label-small" x="514" y="124" text-anchor="middle" font-size="12">每个动作都是一个分支</text>
 
-      <path class="diagram-edge" d="M 190 186 C 190 210 190 220 190 240" fill="none" stroke-width="1.8" marker-end="url(#cd-arrow3)" />
-      <path class="diagram-edge" d="M 340 186 V 240" fill="none" stroke-width="1.8" marker-end="url(#cd-arrow3)" />
-      <path class="diagram-edge" d="M 490 186 C 490 210 490 220 490 240" fill="none" stroke-width="1.8" marker-end="url(#cd-arrow3)" />
+      <rect class="diagram-node-muted" x="38" y="266" width="210" height="90" rx="12" stroke-width="2" />
+      <text class="diagram-label" x="143" y="292" text-anchor="middle" font-size="13" font-weight="700">分支 1 的账</text>
+      <text class="diagram-label-small" x="143" y="316" text-anchor="middle" font-size="12">概率：P(s₁′|s,a₁)</text>
+      <text class="diagram-label-small" x="143" y="338" text-anchor="middle" font-size="12">小账：R(s,a₁,s₁′)+γV(s₁′)</text>
 
-      <rect class="diagram-node-muted" x="100" y="240" width="180" height="58" rx="12" stroke-width="2" />
-      <text class="diagram-label" x="190" y="263" text-anchor="middle" font-size="13" font-weight="700">拿到奖励 r(s,a₁)</text>
-      <text class="diagram-label-small" x="190" y="284" text-anchor="middle" font-size="12">再进入后继 s′，价值 γV(s′)</text>
-      <rect class="diagram-node-muted" x="250" y="240" width="180" height="58" rx="12" stroke-width="2" />
-      <text class="diagram-label" x="340" y="263" text-anchor="middle" font-size="13" font-weight="700">r(s,a₂) + γV(s′)</text>
-      <text class="diagram-label-small" x="340" y="284" text-anchor="middle" font-size="12">虚线框：估计值还在学习中</text>
-      <rect class="diagram-node-muted" x="400" y="240" width="180" height="58" rx="12" stroke-width="2" />
-      <text class="diagram-label" x="490" y="263" text-anchor="middle" font-size="13" font-weight="700">r(s,a₃) + γV(s′)</text>
-      <text class="diagram-label-small" x="490" y="284" text-anchor="middle" font-size="12">折扣 γ 缩远期贡献</text>
+      <rect class="diagram-node-muted" x="275" y="266" width="210" height="90" rx="12" stroke-width="2" />
+      <text class="diagram-label" x="380" y="292" text-anchor="middle" font-size="13" font-weight="700">分支 2 的账</text>
+      <text class="diagram-label-small" x="380" y="316" text-anchor="middle" font-size="12">可能到多个 s′，逐个加权</text>
+      <text class="diagram-label-small" x="380" y="338" text-anchor="middle" font-size="12">小账：R(s,a₂,s′)+γV(s′)</text>
 
-      <path class="diagram-edge-accent" d="M 96 269 C 40 269 30 44 268 44" fill="none" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#cd-arrow3)" />
-      <text class="diagram-label" x="60" y="150" text-anchor="middle" font-size="12.5" font-weight="700" transform="rotate(-90 60 150)">回传：V(s) = Σₐ π(a|s)[r + γV(s′)]</text>
+      <rect class="diagram-node-muted" x="512" y="266" width="210" height="90" rx="12" stroke-width="2" />
+      <text class="diagram-label" x="617" y="292" text-anchor="middle" font-size="13" font-weight="700">分支 3 的账</text>
+      <text class="diagram-label-small" x="617" y="316" text-anchor="middle" font-size="12">γ 把后继价值打折</text>
+      <text class="diagram-label-small" x="617" y="338" text-anchor="middle" font-size="12">小账：R(s,a₃,s′)+γV(s′)</text>
+
+      <path class="diagram-edge" d="M 143 206 V 266" fill="none" stroke-width="1.8" marker-end="url(#cd-arrow3)" />
+      <path class="diagram-edge" d="M 380 206 V 266" fill="none" stroke-width="1.8" marker-end="url(#cd-arrow3)" />
+      <path class="diagram-edge" d="M 617 206 V 266" fill="none" stroke-width="1.8" marker-end="url(#cd-arrow3)" />
+
+      <path class="diagram-edge-accent" d="M 143 356 C 174 392 236 404 318 404" fill="none" stroke-width="2.2" marker-end="url(#cd-arrow3)" />
+      <path class="diagram-edge-accent" d="M 380 356 V 382" fill="none" stroke-width="2.2" marker-end="url(#cd-arrow3)" />
+      <path class="diagram-edge-accent" d="M 617 356 C 586 392 524 404 442 404" fill="none" stroke-width="2.2" marker-end="url(#cd-arrow3)" />
+      <rect class="diagram-node-accent" x="318" y="382" width="124" height="42" rx="12" stroke-width="2" />
+      <text class="diagram-label" x="380" y="407" text-anchor="middle" font-size="13" font-weight="700">加权平均</text>
+      <text class="diagram-label-small" x="380" y="440" text-anchor="middle" font-size="12">再把结果回填成新的 V(s) 估计</text>
     </svg>
     <p class="diagram-note">读图结论：贝尔曼方程说“一个状态的价值 = 所有动作分支的（即时奖励 + 折扣后的后继价值）按策略加权平均”。第 1 课的 Q 学习更新，就是把这条方程右边采样出来、去修正左边的旧估计。</p>
   </div>
